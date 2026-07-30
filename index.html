@@ -647,67 +647,78 @@
     <!--         JS            -->
     <!-- ===================== -->
     <script>
-   document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const loadingScreen = document.getElementById("loadingScreen");
     const mainContent = document.getElementById("mainContent");
     const progressBar = document.getElementById("progressBar");
     const percentage = document.getElementById("percentage");
 
-    let progress = 0;
+    let redirectUrl = null;
+    let error = false;
 
-    // Animacja paska ładowania
-    const interval = setInterval(() => {
-        if (progress < 90) {
-            progress += Math.random() * 6 + 2;
-            progressBar.style.width = progress + "%";
-            percentage.textContent = Math.floor(progress) + "%";
-        }
-    }, 120);
+    // Czas ładowania (ms)
+    const loadingTime = 15000;
 
+    // Pobieranie config.json
     try {
-        // Pobierz config.json bez użycia cache
         const response = await fetch("config.json?t=" + Date.now(), {
             cache: "no-store"
         });
 
         if (!response.ok) {
-            window.location.replace("404.html");
-            return;
+            error = true;
+        } else {
+            const config = await response.json();
+
+            if (
+                !config ||
+                typeof config.url !== "string" ||
+                config.url.trim() === ""
+            ) {
+                error = true;
+            } else {
+                redirectUrl = config.url.trim();
+            }
         }
-
-        const config = await response.json();
-
-        // Sprawdź czy URL istnieje
-        if (
-            !config ||
-            typeof config.url !== "string" ||
-            config.url.trim() === ""
-        ) {
-            window.location.replace("404.html");
-            return;
-        }
-
-        // Zakończ animację
-        clearInterval(interval);
-
-        progress = 100;
-        progressBar.style.width = "100%";
-        percentage.textContent = "100%";
-
-        // Krótkie opóźnienie dla efektu
-        setTimeout(() => {
-            window.location.replace(config.url.trim());
-        }, 500);
 
     } catch (err) {
         console.error(err);
-
-        clearInterval(interval);
-
-        // Nie udało się odczytać config.json
-        window.location.replace("404.html");
+        error = true;
     }
+
+
+    // Animacja paska przez określony czas
+    let start = Date.now();
+
+    const loadingInterval = setInterval(() => {
+        let elapsed = Date.now() - start;
+
+        let progress = Math.min(
+            (elapsed / loadingTime) * 100,
+            100
+        );
+
+        progressBar.style.width = progress + "%";
+        percentage.textContent = Math.floor(progress) + "%";
+
+
+        if (progress >= 100) {
+            clearInterval(loadingInterval);
+
+            setTimeout(() => {
+
+                if (error) {
+                    window.location.replace("404.html");
+                } else {
+                    window.location.replace(redirectUrl);
+                }
+
+            }, 700);
+        }
+
+    }, 50);
 });
+
     </script>
 </body>
 </html>
