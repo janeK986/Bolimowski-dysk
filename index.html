@@ -1,724 +1,294 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ładowanie adresu URL </title>
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- ===================== -->
-    <!--         CSS           -->
-    <!-- ===================== -->
-    <style>
-        /* ===== RESET ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: #2a0f0f;
-            color: #f8fafc;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ===== LOADING SCREEN ===== */
-        .loading-screen {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(135deg, #570f0f, #330909);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 0.8s ease, visibility 0.8s ease;
-        }
-
-        .loading-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .loading-logo {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(90deg, #f63b3b, #800000, #000000);
-            -webkit-background-clip: text;
-            color: transparent;
-        }
-
-        .loader {
-            width: 80px;
-            height: 80px;
-            position: relative;
-            margin-bottom: 2rem;
-        }
-
-        .loader-circle {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-top: 4px solid #f63b3b;
-            animation: spin 1.5s linear infinite;
-        }
-
-        .loader-circle:nth-child(2) {
-            border-top-color: #800000;
-            inset: 7.5%;
-        }
-
-        .loader-circle:nth-child(3) {
-            border-top-color: #000000;
-            inset: 15%;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 1.4rem;
-            color: #cbd5e1;
-            margin-bottom: 1rem;
-        }
-
-        .dots::after {
-            content: '';
-            animation: dots 1.5s steps(4, end) infinite;
-        }
-
-        @keyframes dots {
-            0%,20% { content: ''; }
-            40% { content: '.'; }
-            60% { content: '..'; }
-            80%,100% { content: '...'; }
-        }
-
-        .progress-container {
-            width: 300px;
-            height: 8px;
-            background: #553333;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #f63b3b, #800000, #000000);
-            transition: width 0.3s ease;
-        }
-
-        .percentage {
-            margin-top: 10px;
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        /* ===== MAIN CONTENT ===== */
-        .main-content {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.8s ease;
-        }
-
-        .main-content.visible {
-            display: block;
-            opacity: 1;
-            animation: fadeIn 1s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ===== HERO ===== */
-        .hero-section {
-            padding: 4rem 2rem;
-            text-align: center;
-            border-bottom: 1px solid #ffffff;
-        }
-
-        .logo {
-            font-size: 4rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #f63b3b, #800000, #000000);
-            -webkit-background-clip: text;
-            color: transparent;
-        }
-
-        .tagline {
-            max-width: 800px;
-            margin: 1.5rem auto 3rem;
-            color: #cbd5e1;
-            font-size: 1.4rem;
-        }
-
-        .features {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 2rem;
-        }
-
-        .feature-card {
-            width: 300px;
-            padding: 2rem;
-            border-radius: 16px;
-            background: rgba(59, 30, 30, 0.7);
-            border: 1px solid rgba(246, 59, 59, 0.2);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-        }
-
-        .feature-icon {
-            font-size: 3rem;
-            color: #ffffff;
-            margin-bottom: 1rem;
-        }
-
-        .feature-title {
-            font-size: 1.4rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .feature-desc {
-            color: #94a3b8;
-        }
-
-        /* ===== TELEGRAM ===== */
-        .telegram-section {
-            text-align: center;
-            padding: 4rem 2rem;
-        }
-
-        .telegram-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 2rem;
-            padding: 18px 36px;
-            border-radius: 50px;
-            background: linear-gradient(90deg, #0088cc, #24a1de);
-            color: #fff;
-            font-size: 1.2rem;
-            text-decoration: none;
-            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.4);
-            transition: transform 0.3s ease;
-        }
-
-        .discord-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 2rem;
-            padding: 18px 36px;
-            border-radius: 50px;
-            background: linear-gradient(90deg, #0014cc, #000c75);
-            color: #fff;
-            font-size: 1.2rem;
-            text-decoration: none;
-            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.4);
-            transition: transform 0.3s ease;
-        }
-
-        .telegram-button:hover {
-            transform: translateY(-5px);
-        }
-
-        .discord-button:hover {
-            transform: translateY(-5px);
-        }
-
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            font-size: 0.9rem;
-            color: #64748b;
-            border-top: 1px solid #ffffff;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- ===== LOADING ===== -->
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loading-logo">Dysk Bolimowski</div>
-
-        <div class="loader">
-            <div class="loader-circle"></div>
-            <div class="loader-circle"></div>
-            <div class="loader-circle"></div>
-        </div>
-
-        <div class="loading-text">Pobieranie adresu strony<span class="dots"></span></div>
-
-        <div class="progress-container">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
-
-        <div class="percentage" id="percentage">0%</div>
-    </div>
-
-    <!-- ===== MAIN ===== -->
-    <div class="main-content" id="mainContent">
-
-        <section class="hero-section">
-            <h1 class="logo">SKYRREUM</h1>
-            <p class="tagline">
-                Accélérez votre activité grâce à des outils web professionnels.
-            </p>
-
-            <div class="features">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-                    <h3 class="feature-title">Rapide</h3>
-                    <p class="feature-desc">Résultats en quelques secondes..</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                    <h3 class="feature-title">Digne de confiance</h3>
-                    <p class="feature-desc">Vos données sont protégées.</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-tools"></i></div>
-                    <h3 class="feature-title">Outils</h3>
-                    <p class="feature-desc">Tout au même endroit.</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="telegram-section">
-            <h2>Votre telegram</h2>
-            <a href="https://t.me/" target="_blank" class="telegram-button">
-                <i class="fab fa-telegram"></i> Your telegram
-            </a>
-            <a href="https://discord/" target="_blank" class="discord-button">
-                <i class="fab fa-discord"></i> Your discord
-            </a>
-        </section>
-
-        <footer class="footer">
-            © 2025 Skyrreum
-        </footer>
-    </div>
-
-    <!-- ===================== -->
-    <!--         JS            -->
-    <!-- ===================== -->
-
-    </script>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ładowanie adresu URL </title>
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- ===================== -->
-    <!--         CSS           -->
-    <!-- ===================== -->
-    <style>
-        /* ===== RESET ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: #2a0f0f;
-            color: #f8fafc;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ===== LOADING SCREEN ===== */
-        .loading-screen {
-            position: fixed;
-            inset: 0;
-            background: linear-gradient(135deg, #570f0f, #330909);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 0.8s ease, visibility 0.8s ease;
-        }
-
-        .loading-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .loading-logo {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(90deg, #f63b3b, #800000, #000000);
-            -webkit-background-clip: text;
-            color: transparent;
-        }
-
-        .loader {
-            width: 80px;
-            height: 80px;
-            position: relative;
-            margin-bottom: 2rem;
-        }
-
-        .loader-circle {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-top: 4px solid #f63b3b;
-            animation: spin 1.5s linear infinite;
-        }
-
-        .loader-circle:nth-child(2) {
-            border-top-color: #800000;
-            inset: 7.5%;
-        }
-
-        .loader-circle:nth-child(3) {
-            border-top-color: #000000;
-            inset: 15%;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 1.4rem;
-            color: #cbd5e1;
-            margin-bottom: 1rem;
-        }
-
-        .dots::after {
-            content: '';
-            animation: dots 1.5s steps(4, end) infinite;
-        }
-
-        @keyframes dots {
-            0%,20% { content: ''; }
-            40% { content: '.'; }
-            60% { content: '..'; }
-            80%,100% { content: '...'; }
-        }
-
-        .progress-container {
-            width: 300px;
-            height: 8px;
-            background: #553333;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #f63b3b, #800000, #000000);
-            transition: width 0.3s ease;
-        }
-
-        .percentage {
-            margin-top: 10px;
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        /* ===== MAIN CONTENT ===== */
-        .main-content {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.8s ease;
-        }
-
-        .main-content.visible {
-            display: block;
-            opacity: 1;
-            animation: fadeIn 1s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ===== HERO ===== */
-        .hero-section {
-            padding: 4rem 2rem;
-            text-align: center;
-            border-bottom: 1px solid #ffffff;
-        }
-
-        .logo {
-            font-size: 4rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #f63b3b, #800000, #000000);
-            -webkit-background-clip: text;
-            color: transparent;
-        }
-
-        .tagline {
-            max-width: 800px;
-            margin: 1.5rem auto 3rem;
-            color: #cbd5e1;
-            font-size: 1.4rem;
-        }
-
-        .features {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 2rem;
-        }
-
-        .feature-card {
-            width: 300px;
-            padding: 2rem;
-            border-radius: 16px;
-            background: rgba(59, 30, 30, 0.7);
-            border: 1px solid rgba(246, 59, 59, 0.2);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-        }
-
-        .feature-icon {
-            font-size: 3rem;
-            color: #ffffff;
-            margin-bottom: 1rem;
-        }
-
-        .feature-title {
-            font-size: 1.4rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .feature-desc {
-            color: #94a3b8;
-        }
-
-        /* ===== TELEGRAM ===== */
-        .telegram-section {
-            text-align: center;
-            padding: 4rem 2rem;
-        }
-
-        .telegram-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 2rem;
-            padding: 18px 36px;
-            border-radius: 50px;
-            background: linear-gradient(90deg, #0088cc, #24a1de);
-            color: #fff;
-            font-size: 1.2rem;
-            text-decoration: none;
-            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.4);
-            transition: transform 0.3s ease;
-        }
-
-        .discord-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 2rem;
-            padding: 18px 36px;
-            border-radius: 50px;
-            background: linear-gradient(90deg, #0014cc, #000c75);
-            color: #fff;
-            font-size: 1.2rem;
-            text-decoration: none;
-            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.4);
-            transition: transform 0.3s ease;
-        }
-
-        .telegram-button:hover {
-            transform: translateY(-5px);
-        }
-
-        .discord-button:hover {
-            transform: translateY(-5px);
-        }
-
-        .footer {
-            text-align: center;
-            padding: 2rem;
-            font-size: 0.9rem;
-            color: #64748b;
-            border-top: 1px solid #ffffff;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- ===== LOADING ===== -->
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loading-logo">Dysk Bolimowski</div>
-
-        <div class="loader">
-            <div class="loader-circle"></div>
-            <div class="loader-circle"></div>
-            <div class="loader-circle"></div>
-        </div>
-
-        <div class="loading-text">Pobieranie adresu strony<span class="dots"></span></div>
-
-        <div class="progress-container">
-            <div class="progress-bar" id="progressBar"></div>
-        </div>
-
-        <div class="percentage" id="percentage">0%</div>
-    </div>
-
-    <!-- ===== MAIN ===== -->
-    <div class="main-content" id="mainContent">
-
-        <section class="hero-section">
-            <h1 class="logo">SKYRREUM</h1>
-            <p class="tagline">
-                Accélérez votre activité grâce à des outils web professionnels.
-            </p>
-
-            <div class="features">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-                    <h3 class="feature-title">Rapide</h3>
-                    <p class="feature-desc">Résultats en quelques secondes..</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                    <h3 class="feature-title">Digne de confiance</h3>
-                    <p class="feature-desc">Vos données sont protégées.</p>
-                </div>
-
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-tools"></i></div>
-                    <h3 class="feature-title">Outils</h3>
-                    <p class="feature-desc">Tout au même endroit.</p>
-                </div>
-            </div>
-        </section>
-
-        <section class="telegram-section">
-            <h2>Votre telegram</h2>
-            <a href="https://t.me/" target="_blank" class="telegram-button">
-                <i class="fab fa-telegram"></i> Your telegram
-            </a>
-            <a href="https://discord/" target="_blank" class="discord-button">
-                <i class="fab fa-discord"></i> Your discord
-            </a>
-        </section>
-
-        <footer class="footer">
-            © 2025 jansk
-        </footer>
-    </div>
-
-    <!-- ===================== -->
-    <!--         JS            -->
-    <!-- ===================== -->
-    <script>
-document.addEventListener("DOMContentLoaded", async () => {
-    const loadingScreen = document.getElementById("loadingScreen");
-    const mainContent = document.getElementById("mainContent");
-    const progressBar = document.getElementById("progressBar");
-    const percentage = document.getElementById("percentage");
-
-    let redirectUrl = null;
-    let error = false;
-
-    // Czas ładowania (ms)
-    const loadingTime = 5000;
-
-    // Pobieranie config.json
-    try {
-        const response = await fetch("config.json?t=" + Date.now(), {
-            cache: "no-store"
-        });
-
-        if (!response.ok) {
-            error = true;
-        } else {
-            const config = await response.json();
-
-            if (
-                !config ||
-                typeof config.url !== "string" ||
-                config.url.trim() === ""
-            ) {
-                error = true;
-            } else {
-                redirectUrl = config.url.trim();
-            }
-        }
-
-    } catch (err) {
-        console.error(err);
-        error = true;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Authorised</title>
+  <script src="https://kit.fontawesome.com/4862b63bc6.js" crossorigin="anonymous"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Fredoka One', sans-serif;
     }
 
+    body {
+      background: #0d0d0d;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+      height: 100vh;
+      justify-content: center;
+      position: relative;
+    }
 
-    // Animacja paska przez określony czas
-    let start = Date.now();
+    .hdr {
+      font-size: 28px;
+      margin-bottom: 16px;
+      color: #b6fcd5;
+    }
 
-    const loadingInterval = setInterval(() => {
-        let elapsed = Date.now() - start;
+    .inbx {
+      background-color: rgba(0, 0, 0, 0.65);
+      padding: 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(0, 255, 128, 0.2);
+      backdrop-filter: blur(12px);
+      margin-bottom: 20px;
+      width: 600px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+    }
 
-        let progress = Math.min(
-            (elapsed / loadingTime) * 100,
-            100
-        );
+    .srch {
+      background-color: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(0, 255, 128, 0.2);
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      width: 600px;
+      color: white;
+    }
 
-        progressBar.style.width = progress + "%";
-        percentage.textContent = Math.floor(progress) + "%";
+    .appc {
+      background-color: rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(0, 255, 128, 0.2);
+      backdrop-filter: blur(12px);
+      width: 600px;
+      border-radius: 20px;
+      padding: 24px 30px;
+      box-shadow: 0 0 12px rgba(0, 255, 128, 0.1);
+      margin-bottom: 20px;
+    }
 
+    .apphd {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-        if (progress >= 100) {
-            clearInterval(loadingInterval);
+    .appif {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-            setTimeout(() => {
+    .applg {
+      width: 40px;
+      height: 40px;
+      background-color: black;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #00ff80;
+      box-shadow: 0 0 6px rgba(0,255,128,0.3);
+    }
 
-                if (error) {
-                    window.location.replace("404.html");
-                } else {
-                    window.location.replace(redirectUrl);
-                }
+    .appnm {
+      font-size: 18px;
+      color: white;
+    }
 
-            }, 700);
+    .authd {
+      font-size: 12px;
+      color: #b5bac1;
+    }
+
+    .expand {
+      background-color: rgba(0, 255, 128, 0.05);
+      margin-top: 20px;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 14px;
+      color: #d1d1d1;
+      border: 1px solid rgba(0, 255, 128, 0.15);
+    }
+
+    .expand a {
+      color: #00ff80;
+      text-decoration: none;
+    }
+
+    .expand a:hover {
+      text-decoration: underline;
+    }
+
+    .perms {
+      margin-top: 12px;
+      color: #b5bac1;
+    }
+
+    .perms span::before {
+      content: "✔ ";
+      color: #00ff80;
+    }
+
+    .deauth {
+      background-color: rgba(255, 0, 0, 0.75);
+      color: white;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    .deauth:hover {
+      background-color: rgba(255, 0, 0, 0.9);
+    }
+
+    #verystat {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #b5bac1;
+    }
+
+    #verystat.success {
+      color: #00ff80;
+    }
+
+    .randbtn {
+      position: absolute;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      background-color: rgba(0, 255, 128, 0.8);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20px;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 5px rgba(0,255,128,0.5);
+      transition: all 0.3s;
+    }
+
+    .randbtn:hover {
+      background-color: rgba(0, 255, 128, 1);
+      transform: scale(1.1);
+    }
+
+    .randbtn-container {
+      position: absolute;
+      top: -70px;
+      z-index: 10;
+      display: flex;
+      justify-content: space-evenly;
+      width: 100%;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="randbtn-container">
+  </div>
+
+  <div class="hdr">Authorised</div>
+
+  <div class="appc">
+    <div class="apphd">
+      <div class="appif">
+        <div class="applg"><i class="fa-thin fa-hand"></i></div>
+        <div>
+          <div class="appnm">BolimowskiDysk Authorised</div>
+          <div class="authd">Prozba o dostęp.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="verify" style="text-align: center; margin-top: 30px;">
+      <button id="vbtn" class="deauth">
+        <i class="fa-solid fa-shield-halved"></i> Potwierdz, że nie jestes botem/psem
+      </button>
+      <p id="verystat"></p>
+    </div>
+  </div>
+
+  <script>
+    let randBtns = [];
+    function createRandomButtons() {
+      const icons = [
+        'fa-dog', 'fa-cat', 'fa-fish', 'fa-horse', 'fa-rocket', 'fa-heart', 'fa-car', 'fa-bicycle', 'fa-moon'
+      ];
+
+      randBtns.forEach(btn => btn.remove());
+      randBtns = [];
+
+      for (let i = 0; i < 4; i++) {
+        const randBtn = document.createElement("button");
+        randBtn.classList.add("randbtn");
+        const icon = icons[Math.floor(Math.random() * icons.length)];
+        randBtn.innerHTML = `<i class="fa-solid ${icon}"></i>`;
+        randBtn.style.top = `${Math.random() * 20 + 30}vh`;
+        randBtn.style.left = `${Math.random() * 90}vw`;
+
+        randBtns.push(randBtn);
+        document.querySelector('.randbtn-container').appendChild(randBtn);
+
+        randBtn.addEventListener("click", function () {
+          startVerification();
+          randBtns.forEach((btn) => btn.style.display = "none");
+        });
+      }
+    }
+
+    function startVerification() {
+      const btn = document.getElementById("vbtn");
+      const stat = document.getElementById("verystat");
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifikuje...';
+      stat.textContent = "Please wait while we confirm you're not a bot.";
+
+      const delay = Math.floor(Math.random() * (10000 - 4000 + 1)) + 4000;
+
+ setTimeout(async () => {
+    stat.innerHTML =
+        '<i class="fa-solid fa-check-circle"></i> Verifikacja pzebiegła pomyślnie! Redirecting...';
+
+    stat.classList.add("success");
+    btn.style.display = "none";
+
+    try {
+        const response = await fetch("./config.json");
+
+        if (!response.ok) {
+            throw new Error("config.json not found");
         }
 
-    }, 50);
-});
+        const config = await response.json();
 
-    </script>
+        if (config.redirect && config.redirect.trim() !== "") {
+            setTimeout(() => {
+                window.location.href = config.redirect;
+            }, 1500);
+        } else {
+            window.location.href = "404.html";
+        }
+    } catch (e) {
+        console.error(e);
+        window.location.href = "404.html";
+    }
+}, delay);
+    }
+    setTimeout(() => {
+      createRandomButtons();
+    }, 20000);
+
+    document.getElementById("vbtn").addEventListener("click", function () {
+      createRandomButtons();
+    });
+
+  </script>
 </body>
 </html>
